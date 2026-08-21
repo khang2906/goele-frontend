@@ -33,7 +33,7 @@ export default async function Home({
     <main className="max-w-4xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold">Göle</h1>
-        <Button render={<Link href="/events/new"/>}>+ New event</Button>
+        <Button render={<Link href="/events/new" />} nativeButton={false}>+ New event</Button>
       </div>
 
       <div className="flex gap-2 mb-6">
