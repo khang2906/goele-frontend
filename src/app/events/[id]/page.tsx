@@ -3,13 +3,9 @@ import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { EventMapLoader } from "@/components/EventMapLoader";
 import { RsvpForm } from "@/components/RsvpForm";
-import type { Event, Sport } from "@/types";
+import { SPORT_LABELS, type Event } from "@/types";
 
-const SPORT_LABELS: Record<Sport, string> = {
-  bike: "Bike",
-  motorcycle: "Motorcycle",
-  run: "Run",
-};
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 function formatDate(isoString: string): string {
   return new Date(isoString).toLocaleString("de-DE", {
@@ -23,7 +19,7 @@ function formatDate(isoString: string): string {
 }
 
 async function getEvent(id: string): Promise<Event | null> {
-  const res = await fetch(`http://localhost:8000/api/events/${id}`, {
+  const res = await fetch(`${API_URL}/api/events/${id}`, {
     cache: "no-store",
   });
   if (res.status === 404) return null;

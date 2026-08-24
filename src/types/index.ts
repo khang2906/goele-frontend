@@ -1,5 +1,11 @@
 export type Sport = "bike" | "motorcycle" | "run";
 
+export const SPORT_LABELS: Record<Sport, string> = {
+  bike: "Bike",
+  motorcycle: "Motorcycle",
+  run: "Run",
+};
+
 export interface EventListItem {
   id: number;
   sport: Sport;

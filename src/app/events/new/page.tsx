@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { LocationPickerLoader } from "@/components/LocationPickerLoader";
 import type { Sport } from "@/types";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 // Shared with Input's own styling so the plain <select>/<textarea> (no shadcn
 // wrapper exists for these yet) still look like they belong to the same form.
 const fieldClassName =
@@ -39,11 +41,20 @@ export default function NewEventPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    // lat/lng only get set once the user picks a Nominatim suggestion or clicks
+    // the map (see LocationPicker) — typing free text alone isn't enough, since
+    // the backend requires a real pin for every new event.
+    if (lat == null || lng == null) {
+      setError("Please pick a location: search for a place or click the map.");
+      return;
+    }
+
     setIsSubmitting(true);
     setError(null);
 
     try {
-      const res = await fetch("http://localhost:8000/api/events", {
+      const res = await fetch(`${API_URL}/api/events`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -110,7 +121,9 @@ export default function NewEventPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Meeting point</label>
+          <label className="block text-sm font-medium mb-1">
+            Meeting point <span className="text-muted-foreground">(search or click the map to set a pin — required)</span>
+          </label>
           <LocationPickerLoader
             meetingPoint={meetingPoint}
             onMeetingPointChange={setMeetingPoint}
@@ -170,7 +183,7 @@ export default function NewEventPage() {
 
         {error && <p className="text-sm text-destructive">{error}</p>}
 
-        <Button type="submit" disabled={isSubmitting}>
+        <Button type="submit" disabled={isSubmitting || lat == null || lng == null}>
           {isSubmitting ? "Creating..." : "Create event"}
         </Button>
       </form>

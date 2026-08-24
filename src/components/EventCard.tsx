@@ -1,13 +1,7 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { EventListItem, Sport } from "@/types";
-
-const SPORT_LABELS: Record<Sport, string> = {
-  bike: "Bike",
-  motorcycle: "Motorcycle",
-  run: "Run",
-};
+import { SPORT_LABELS, type EventListItem } from "@/types";
 
 function formatDate(isoString: string): string {
   return new Date(isoString).toLocaleString("de-DE", {

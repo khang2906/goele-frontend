@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export function RsvpForm({ eventId }: { eventId: number }) {
   const [name, setName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -19,7 +21,7 @@ export function RsvpForm({ eventId }: { eventId: number }) {
     setError(null);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/events/${eventId}/rsvp`,
+        `${API_URL}/api/events/${eventId}/rsvp`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
