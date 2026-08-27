@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import type { EventListItem } from "@/types";
 
 // Same reasoning as EventMapLoader.tsx / LocationPickerLoader.tsx: Leaflet
 // touches `window` at module-load time, which crashes during the server-side
@@ -9,10 +10,20 @@ const EventsMap = dynamic(
   () => import("@/components/EventsMap").then((mod) => mod.EventsMap),
   {
     ssr: false,
-    loading: () => (
-      <div className="h-[28rem] w-full rounded-lg bg-muted animate-pulse" />
-    ),
+    loading: () => <div className="h-full w-full bg-muted animate-pulse" />,
   }
 );
 
-export { EventsMap as EventsMapLoader };
+export function EventsMapLoader({
+  events,
+  selectedEventId,
+  onSelectEvent,
+}: {
+  events: EventListItem[];
+  selectedEventId: number | null;
+  onSelectEvent: (id: number) => void;
+}) {
+  return (
+    <EventsMap events={events} selectedEventId={selectedEventId} onSelectEvent={onSelectEvent} />
+  );
+}

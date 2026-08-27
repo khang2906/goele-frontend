@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+/* Must load after Tailwind's preflight reset, or Leaflet's positioning
+   rules for tiles/panes get overridden and the map renders blank. */
+@import "leaflet/dist/leaflet.css";
 
 @custom-variant dark (&:is(.dark *));
 

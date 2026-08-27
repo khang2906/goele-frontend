@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { EventMapLoader } from "@/components/EventMapLoader";
 import { RsvpForm } from "@/components/RsvpForm";
+import { safeHttpUrl } from "@/lib/utils";
 import { SPORT_LABELS, type Event } from "@/types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -60,11 +61,11 @@ export default async function EventDetailPage({
             👥 {event.rsvps.length} / {event.max_participants} going
           </p>
         )}
-        {event.route_link && (
+        {safeHttpUrl(event.route_link) && (
           <p>
             🔗{" "}
             <a
-              href={event.route_link}
+              href={safeHttpUrl(event.route_link)}
               target="_blank"
               rel="noopener noreferrer"
               className="text-primary hover:underline"

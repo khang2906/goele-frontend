@@ -7,7 +7,16 @@ import { Input } from "@/components/ui/input";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export function RsvpForm({ eventId }: { eventId: number }) {
+export function RsvpForm({
+  eventId,
+  onRsvped,
+}: {
+  eventId: number;
+  // Called after a successful RSVP instead of the default router.refresh() —
+  // needed by the floating map detail panel, which fetches its event data
+  // client-side rather than through the server component's own re-render.
+  onRsvped?: () => void;
+}) {
   const [name, setName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,9 +40,13 @@ export function RsvpForm({ eventId }: { eventId: number }) {
       if (!res.ok) throw new Error("Failed to RSVP");
 
       setName("");
-      // Re-runs the server component's data fetch so the new RSVP shows up,
-      // without a full page reload.
-      router.refresh();
+      if (onRsvped) {
+        onRsvped();
+      } else {
+        // Re-runs the server component's data fetch so the new RSVP shows up,
+        // without a full page reload.
+        router.refresh();
+      }
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {

@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { MapContainer, Marker, TileLayer, useMapEvents } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
 
 import { Input } from "@/components/ui/input";
 import { markerIcon } from "@/lib/leaflet-icon";
