@@ -47,7 +47,7 @@ export function EventDetailPanel({
   }, [eventId, refreshKey]);
 
   return (
-    <div className="absolute top-4 right-4 bottom-4 z-20 w-96 overflow-y-auto rounded-lg border border-border bg-background/95 p-4 shadow-md backdrop-blur">
+    <div className="absolute top-4 right-4 bottom-4 z-20 w-[calc(100vw-2rem)] max-w-96 overflow-y-auto rounded-lg border border-border bg-background/95 p-4 shadow-md backdrop-blur">
       <button
         type="button"
         onClick={onClose}

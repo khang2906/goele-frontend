@@ -24,7 +24,11 @@ export default async function Home({
   const events = await getEvents(sport);
 
   return (
-    <div className="flex h-screen flex-col">
+    // h-dvh (dynamic viewport height), not h-screen (100vh) — on iOS Safari
+    // 100vh is measured as if the address bar were fully collapsed, so a
+    // 100vh-tall page renders taller than what's actually visible, pushing
+    // everything below the header off-screen with no way to scroll to it.
+    <div className="flex h-dvh flex-col">
       <header className="flex items-center justify-between border-b border-border px-4 py-4">
         <h1 className="text-3xl font-bold">Göle</h1>
         <Button render={<Link href="/events/new" />} nativeButton={false}>+ New event</Button>

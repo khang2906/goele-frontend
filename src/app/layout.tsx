@@ -1,9 +1,13 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Named "--font-sans" (not "--font-geist-sans", next/font's usual default)
+// to match what globals.css's Tailwind theme actually reads — the previous
+// Geist setup used the mismatched default name, so it was silently never
+// applied and the site was rendering in the browser's fallback sans font.
+const sans = Inter({
+  variable: "--font-sans",
   subsets: ["latin"],
 });
 
@@ -25,7 +29,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${sans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
