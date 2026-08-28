@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Göle — group rides & runs",
+  title: "RideMeet — group rides & runs",
   description: "Post and join group bike rides, motorcycle rides, and runs. Pick a meetup, see where to start, RSVP.",
 };
 
