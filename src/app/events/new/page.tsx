@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { LocationPickerLoader } from "@/components/LocationPickerLoader";
 import type { Sport } from "@/types";
@@ -21,6 +22,21 @@ const SPORTS: { value: Sport; label: string }[] = [
   { value: "motorcycle", label: "Motorcycle" },
   { value: "run", label: "Run" },
 ];
+
+// Pace means a different thing per sport, so the input adapts rather than
+// asking for free text and hoping. `pace` is still stored as a plain string —
+// the unit is appended on submit, which is what keeps stored values looking
+// consistent ("25 km/h", never "25" or "25kmh" or "twenty-five").
+// A structured pace column would allow filtering later; deliberately not now.
+const PACE_FIELD: Record<Sport, { placeholder: string; unit: string | null; hint: string }> = {
+  bike: { placeholder: "25", unit: "km/h", hint: "Average speed you plan to ride." },
+  motorcycle: {
+    placeholder: "relaxed touring",
+    unit: null,
+    hint: "A word or two — relaxed, sporty, twisty roads.",
+  },
+  run: { placeholder: "5:30", unit: "min/km", hint: "Pace per kilometer." },
+};
 
 export default function NewEventPage() {
   const router = useRouter();
@@ -62,7 +78,11 @@ export default function NewEventPage() {
           title,
           date,
           meeting_point: meetingPoint,
-          pace,
+          // Store the unit with the value — the list and detail views render
+          // pace as-is, so it has to be self-describing.
+          pace: PACE_FIELD[sport].unit
+            ? `${pace.trim()} ${PACE_FIELD[sport].unit}`
+            : pace.trim(),
           max_participants: maxParticipants ? Number(maxParticipants) : null,
           route_link: routeLink || null,
           description: description || null,
@@ -93,7 +113,12 @@ export default function NewEventPage() {
           <label className="block text-sm font-medium mb-1">Sport</label>
           <select
             value={sport}
-            onChange={(e) => setSport(e.target.value as Sport)}
+            onChange={(e) => {
+              setSport(e.target.value as Sport);
+              // Units differ per sport — keeping the old number would silently
+              // reinterpret it (a 5:30 run pace becoming 5:30 km/h).
+              setPace("");
+            }}
             className={fieldClassName}
             required
           >
@@ -138,12 +163,24 @@ export default function NewEventPage() {
 
         <div>
           <label className="block text-sm font-medium mb-1">Pace</label>
-          <Input
-            value={pace}
-            onChange={(e) => setPace(e.target.value)}
-            placeholder="e.g. relaxed, moderate, fast"
-            required
-          />
+          {/* relative + absolute so the unit sits inside the field's border,
+              reading as part of the value rather than as a separate control. */}
+          <div className="relative">
+            <Input
+              value={pace}
+              onChange={(e) => setPace(e.target.value)}
+              placeholder={PACE_FIELD[sport].placeholder}
+              // Room for the unit label so long values don't run underneath it.
+              className={cn(PACE_FIELD[sport].unit && "pr-16")}
+              required
+            />
+            {PACE_FIELD[sport].unit && (
+              <span className="pointer-events-none absolute inset-y-0 right-2.5 flex items-center text-sm text-muted-foreground">
+                {PACE_FIELD[sport].unit}
+              </span>
+            )}
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">{PACE_FIELD[sport].hint}</p>
         </div>
 
         <div>
