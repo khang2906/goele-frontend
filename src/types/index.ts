@@ -1,5 +1,20 @@
 export type Sport = "bike" | "motorcycle" | "run";
 
+/**
+ * The map's visible area, as plain numbers rather than Leaflet's LatLngBounds.
+ *
+ * Deliberate: the panels and EventsExplorer need these values, and importing
+ * anything from Leaflet outside a dynamically-loaded map component crashes the
+ * server render (Leaflet touches `window` at module load). Plain numbers cross
+ * that boundary safely.
+ */
+export interface MapBounds {
+  north: number;
+  south: number;
+  east: number;
+  west: number;
+}
+
 export const SPORT_LABELS: Record<Sport, string> = {
   bike: "Bike",
   motorcycle: "Motorcycle",

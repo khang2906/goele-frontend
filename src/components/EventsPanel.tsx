@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { EventCard } from "@/components/EventCard";
 import { SportFilterSelect } from "@/components/SportFilterSelect";
+import { groupByDay } from "@/lib/groupByDay";
 import { cn } from "@/lib/utils";
 import type { EventListItem, Sport } from "@/types";
 
@@ -14,6 +15,7 @@ export function EventsPanel({
   onSelectEvent,
   collapsed,
   onToggleCollapse,
+  filteredByViewport,
 }: {
   sport: Sport | undefined;
   events: EventListItem[];
@@ -21,7 +23,9 @@ export function EventsPanel({
   onSelectEvent: (id: number) => void;
   collapsed: boolean;
   onToggleCollapse: () => void;
+  filteredByViewport: boolean;
 }) {
+  const groups = groupByDay(events);
   return (
     // A single flex row for the panel + its toggle button, instead of
     // positioning the button with a hardcoded "left" offset matching the
@@ -48,17 +52,33 @@ export function EventsPanel({
           <SportFilterSelect sport={sport} />
         </div>
 
-        <div className="flex-1 space-y-2 overflow-y-auto p-2">
+        <div className="flex-1 overflow-y-auto p-2">
           {events.length === 0 ? (
-            <p className="p-4 text-sm text-muted-foreground">No upcoming events.</p>
+            <p className="p-4 text-sm text-muted-foreground">
+              {/* Two different problems, two different messages: an empty area is
+                  fixed by moving the map, an empty database isn't. */}
+              {filteredByViewport
+                ? "No events in this area. Try zooming out or panning the map."
+                : "No upcoming events."}
+            </p>
           ) : (
-            events.map((event) => (
-              <EventCard
-                key={event.id}
-                event={event}
-                selected={event.id === selectedEventId}
-                onClick={() => onSelectEvent(event.id)}
-              />
+            groups.map((group) => (
+              <div key={group.key}>
+                {/* sticky so the day stays visible while scrolling its events */}
+                <h3 className="sticky top-0 z-10 bg-background/95 py-1 text-xs font-semibold text-muted-foreground backdrop-blur">
+                  {group.label}
+                </h3>
+                <div className="space-y-2 pb-2">
+                  {group.events.map((event) => (
+                    <EventCard
+                      key={event.id}
+                      event={event}
+                      selected={event.id === selectedEventId}
+                      onClick={() => onSelectEvent(event.id)}
+                    />
+                  ))}
+                </div>
+              </div>
             ))
           )}
         </div>

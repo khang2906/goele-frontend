@@ -5,6 +5,7 @@ import { GripHorizontal } from "lucide-react";
 
 import { EventCard } from "@/components/EventCard";
 import { SportFilterSelect } from "@/components/SportFilterSelect";
+import { groupByDay } from "@/lib/groupByDay";
 import type { EventListItem, Sport } from "@/types";
 
 export type SheetSnap = "collapsed" | "half" | "full";
@@ -25,6 +26,7 @@ export function MobileEventsSheet({
   onSelectEvent,
   snap,
   onSnapChange,
+  filteredByViewport,
 }: {
   sport: Sport | undefined;
   events: EventListItem[];
@@ -32,7 +34,9 @@ export function MobileEventsSheet({
   onSelectEvent: (id: number) => void;
   snap: SheetSnap;
   onSnapChange: (snap: SheetSnap) => void;
+  filteredByViewport: boolean;
 }) {
+  const groups = groupByDay(events);
   // Snap heights depend on viewport height, which isn't known during SSR —
   // these fallbacks just avoid a flash of the wrong size before the effect
   // below runs; they're immediately replaced on mount.
@@ -120,17 +124,30 @@ export function MobileEventsSheet({
         </div>
       </div>
 
-      <div className="flex-1 space-y-2 overflow-y-auto px-3 pb-3">
+      <div className="flex-1 overflow-y-auto px-3 pb-3">
         {events.length === 0 ? (
-          <p className="p-4 text-sm text-muted-foreground">No upcoming events.</p>
+          <p className="p-4 text-sm text-muted-foreground">
+            {filteredByViewport
+              ? "No events in this area. Try zooming out or panning the map."
+              : "No upcoming events."}
+          </p>
         ) : (
-          events.map((event) => (
-            <EventCard
-              key={event.id}
-              event={event}
-              selected={event.id === selectedEventId}
-              onClick={() => onSelectEvent(event.id)}
-            />
+          groups.map((group) => (
+            <div key={group.key}>
+              <h3 className="sticky top-0 z-10 bg-background/95 py-1 text-xs font-semibold text-muted-foreground backdrop-blur">
+                {group.label}
+              </h3>
+              <div className="space-y-2 pb-2">
+                {group.events.map((event) => (
+                  <EventCard
+                    key={event.id}
+                    event={event}
+                    selected={event.id === selectedEventId}
+                    onClick={() => onSelectEvent(event.id)}
+                  />
+                ))}
+              </div>
+            </div>
           ))
         )}
       </div>

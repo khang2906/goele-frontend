@@ -1,13 +1,19 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { MapContainer, Marker, TileLayer, ZoomControl, useMap } from "react-leaflet";
+import {
+  MapContainer,
+  Marker,
+  TileLayer,
+  ZoomControl,
+  useMap,
+  useMapEvents,
+} from "react-leaflet";
 
 import { markerIcon } from "@/lib/leaflet-icon";
-import type { EventListItem } from "@/types";
+import type { EventListItem, MapBounds } from "@/types";
 
 const MUNICH: [number, number] = [48.1374, 11.5755];
-const SELECTED_ZOOM = 15;
 const USER_LOCATION_ZOOM = 12;
 
 // Browser geolocation resolves async (and needs a permission prompt), so the
@@ -65,10 +71,16 @@ function FlyToUserLocation({
   return null;
 }
 
-// Flies to the selected event's marker. Only reacts to selectedEventId
+// Pans to the selected event's marker. Only reacts to selectedEventId
 // changing (not to `located` — that would re-trigger on every unrelated
 // re-render) so it doesn't fight the initial bounds-fit on load.
-function FlyToSelected({
+//
+// panTo, not flyTo with a zoom level: the events list is filtered to the map's
+// viewport, so zooming in on selection would collapse the list to the single
+// event just clicked. Panning keeps the zoom — and therefore the list — stable.
+// Trade-off: from a far-out view the panned-to marker can stay small and hard
+// to spot. See TODO.md.
+function PanToSelected({
   selectedEvent,
 }: {
   selectedEvent: (EventListItem & { lat: number; lng: number }) | undefined;
@@ -76,10 +88,39 @@ function FlyToSelected({
   const map = useMap();
   useEffect(() => {
     if (selectedEvent) {
-      map.flyTo([selectedEvent.lat, selectedEvent.lng], SELECTED_ZOOM);
+      map.panTo([selectedEvent.lat, selectedEvent.lng]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedEvent?.id]);
+  return null;
+}
+
+// Reports the visible area upward whenever the map settles, so the list can be
+// filtered to what's on screen. Must live inside <MapContainer> — useMapEvents,
+// like useMap, only works on a descendant of the container.
+function BoundsWatcher({ onBoundsChange }: { onBoundsChange: (b: MapBounds) => void }) {
+  function report(map: L.Map) {
+    const b = map.getBounds();
+    onBoundsChange({
+      north: b.getNorth(),
+      south: b.getSouth(),
+      east: b.getEast(),
+      west: b.getWest(),
+    });
+  }
+
+  const map = useMapEvents({
+    moveend: () => report(map),
+    zoomend: () => report(map),
+  });
+
+  // The initial view fires no move event, so report once on mount — otherwise
+  // the list stays unfiltered until the user first touches the map.
+  useEffect(() => {
+    report(map);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map]);
+
   return null;
 }
 
@@ -87,10 +128,12 @@ export function EventsMap({
   events,
   selectedEventId,
   onSelectEvent,
+  onBoundsChange,
 }: {
   events: EventListItem[];
   selectedEventId: number | null;
   onSelectEvent: (id: number) => void;
+  onBoundsChange: (bounds: MapBounds) => void;
 }) {
   // Events created before coordinates became mandatory can still have nulls —
   // this type guard both filters them out and tells TypeScript that everything
@@ -119,7 +162,8 @@ export function EventsMap({
       <ZoomControl position="bottomright" />
       <MapResizeFix />
       <FlyToUserLocation location={userLocation} hasSelection={selectedEventId != null} />
-      <FlyToSelected selectedEvent={selectedEvent} />
+      <PanToSelected selectedEvent={selectedEvent} />
+      <BoundsWatcher onBoundsChange={onBoundsChange} />
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

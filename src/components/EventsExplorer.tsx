@@ -6,7 +6,7 @@ import { EventDetailPanel } from "@/components/EventDetailPanel";
 import { EventsMapLoader } from "@/components/EventsMapLoader";
 import { EventsPanel } from "@/components/EventsPanel";
 import { MobileEventsSheet, type SheetSnap } from "@/components/MobileEventsSheet";
-import type { EventListItem, Sport } from "@/types";
+import type { EventListItem, MapBounds, Sport } from "@/types";
 
 // Owns the state the map, list panel, and detail panel all need to share:
 // which event is selected, and how open the list is. Has to live in a
@@ -28,6 +28,25 @@ export function EventsExplorer({
   const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
   const [listCollapsed, setListCollapsed] = useState(false);
   const [sheetSnap, setSheetSnap] = useState<SheetSnap>("half");
+  // null until the map reports its first viewport — until then, show everything
+  // rather than an empty list.
+  const [bounds, setBounds] = useState<MapBounds | null>(null);
+
+  // The list shows what's on the map; the map keeps every marker. Events with no
+  // coordinates are dropped once bounds are known — there's no way to place them,
+  // so "is it on screen?" has no answer for them.
+  const visibleEvents =
+    bounds == null
+      ? events
+      : events.filter(
+          (event) =>
+            event.lat != null &&
+            event.lng != null &&
+            event.lat <= bounds.north &&
+            event.lat >= bounds.south &&
+            event.lng <= bounds.east &&
+            event.lng >= bounds.west
+        );
 
   function selectEvent(id: number) {
     setSelectedEventId(id);
@@ -53,6 +72,7 @@ export function EventsExplorer({
           events={events}
           selectedEventId={selectedEventId}
           onSelectEvent={selectEvent}
+          onBoundsChange={setBounds}
         />
       </div>
 
@@ -66,7 +86,8 @@ export function EventsExplorer({
         <div className="hidden md:contents">
           <EventsPanel
             sport={sport}
-            events={events}
+            events={visibleEvents}
+            filteredByViewport={bounds != null && visibleEvents.length < events.length}
             selectedEventId={selectedEventId}
             onSelectEvent={selectEvent}
             collapsed={listCollapsed}
@@ -82,7 +103,8 @@ export function EventsExplorer({
       <div className="md:hidden">
         <MobileEventsSheet
           sport={sport}
-          events={events}
+          events={visibleEvents}
+          filteredByViewport={bounds != null && visibleEvents.length < events.length}
           selectedEventId={selectedEventId}
           onSelectEvent={selectEvent}
           snap={sheetSnap}
