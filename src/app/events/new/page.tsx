@@ -76,7 +76,11 @@ export default function NewEventPage() {
         body: JSON.stringify({
           sport,
           title,
-          date,
+          // <input type="datetime-local"> yields a bare wall clock with no
+          // offset ("2026-09-01T18:30"). new Date() reads that in the browser's
+          // own timezone and toISOString() converts to UTC, so what reaches the
+          // API is unambiguous rather than relying on the server to guess.
+          date: new Date(date).toISOString(),
           meeting_point: meetingPoint,
           // Store the unit with the value — the list and detail views render
           // pace as-is, so it has to be self-describing.
