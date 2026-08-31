@@ -28,7 +28,12 @@ export function EventsPanel({
     // panel's width — that broke on narrow screens where the panel's width
     // itself has to shrink to fit. This way the button just sits right after
     // the panel in normal flow and slides with it for free.
-    <div className="absolute top-4 bottom-4 left-4 z-10 flex items-start">
+    //
+    // No absolute positioning of its own any more: this is a child of the
+    // flex row in EventsExplorer, which places it next to the detail panel.
+    // pointer-events-auto re-enables clicks that the row disables (the row
+    // spans the whole map, so it has to let clicks through by default).
+    <div className="pointer-events-auto flex h-full items-start">
       {/* Floats over the map (Komoot-style) rather than sitting in normal
           document flow. Collapsing animates width to 0 instead of
           unmounting, so the toggle button stays in place and just slides. */}

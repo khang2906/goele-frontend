@@ -31,16 +31,15 @@ export function EventsExplorer({
 
   function selectEvent(id: number) {
     setSelectedEventId(id);
-    // Give the detail panel room instead of stacking both panels — there
-    // isn't space for both on a phone, and on desktop it avoids two
-    // overlapping floating panels either way.
-    setListCollapsed(true);
+    // Only the phone sheet gets collapsed. On desktop the detail panel now sits
+    // beside the list rather than on top of it, so the list stays open — that's
+    // the point of the side-by-side layout: pick one event, then the next,
+    // without reopening the list each time.
     setSheetSnap("collapsed");
   }
 
   function closeDetail() {
     setSelectedEventId(null);
-    setListCollapsed(false);
     setSheetSnap("half");
   }
 
@@ -57,15 +56,27 @@ export function EventsExplorer({
         />
       </div>
 
-      <div className="hidden md:contents">
-        <EventsPanel
-          sport={sport}
-          events={events}
-          selectedEventId={selectedEventId}
-          onSelectEvent={selectEvent}
-          collapsed={listCollapsed}
-          onToggleCollapse={() => setListCollapsed((value) => !value)}
-        />
+      {/* One flex row holding the list and the detail panel side by side, so
+          adjacency comes from flex rather than a hardcoded left offset on the
+          detail panel (which would break whenever the list's width changes or
+          it collapses). The row spans the whole map area, so it must be
+          pointer-events-none or it would swallow every click on the map;
+          each panel turns pointer events back on for itself. */}
+      <div className="pointer-events-none absolute inset-4 z-20 flex items-start gap-2">
+        <div className="hidden md:contents">
+          <EventsPanel
+            sport={sport}
+            events={events}
+            selectedEventId={selectedEventId}
+            onSelectEvent={selectEvent}
+            collapsed={listCollapsed}
+            onToggleCollapse={() => setListCollapsed((value) => !value)}
+          />
+        </div>
+
+        {selectedEventId != null && (
+          <EventDetailPanel eventId={selectedEventId} onClose={closeDetail} />
+        )}
       </div>
 
       <div className="md:hidden">
@@ -78,10 +89,6 @@ export function EventsExplorer({
           onSnapChange={setSheetSnap}
         />
       </div>
-
-      {selectedEventId != null && (
-        <EventDetailPanel eventId={selectedEventId} onClose={closeDetail} />
-      )}
     </div>
   );
 }

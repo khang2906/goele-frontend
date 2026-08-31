@@ -47,7 +47,11 @@ export function EventDetailPanel({
   }, [eventId, refreshKey]);
 
   return (
-    <div className="absolute top-4 right-4 bottom-4 z-20 w-[calc(100vw-2rem)] max-w-96 overflow-y-auto rounded-lg border border-border bg-background/95 p-4 shadow-md backdrop-blur">
+    // Phone: fills the row it's in (which spans the viewport), floating over
+    // the map and the bottom sheet. Desktop: a 320px column parked next to the
+    // events list — w-80 rather than the old max-w-96, so list + toggle + this
+    // still fit inside the 768px md: breakpoint where side-by-side begins.
+    <div className="pointer-events-auto z-20 h-full w-full overflow-y-auto rounded-lg border border-border bg-background/95 p-4 shadow-md backdrop-blur md:w-80 md:shrink-0">
       <button
         type="button"
         onClick={onClose}
